@@ -95,15 +95,10 @@ if(WIN32)
 		# If config is Release, package release files
 		COMMAND if $<CONFIG:Release>==1 (
 			"${CMAKE_COMMAND}" -E make_directory
-			"${RELEASE_DIR}/data/obs-plugins/ucobscontrolplugin"
 			"${RELEASE_DIR}/obs-plugins/${ARCH_NAME}")
 
-		COMMAND if $<CONFIG:Release>==1 ("${CMAKE_COMMAND}" -E copy_directory
-			"${PROJECT_SOURCE_DIR}/data"
-			"${RELEASE_DIR}/data/obs-plugins/ucobscontrolplugin")
-
 		COMMAND if $<CONFIG:Release>==1 ("${CMAKE_COMMAND}" -E copy
-			"$<TARGET_FILE: ucobscontrolplugin>"
+			"$<TARGET_FILE:ucobscontrolplugin>"
 			"${RELEASE_DIR}/obs-plugins/${ARCH_NAME}")
 
 		# In Release mode, copy Qt image format plugins
@@ -127,32 +122,23 @@ if(WIN32)
 			"${RELEASE_DIR}/data/obs-plugins/ucobscontrolplugin")
 
 		COMMAND if $<CONFIG:RelWithDebInfo>==1 ("${CMAKE_COMMAND}" -E copy
-			"$<TARGET_FILE: ucobscontrolplugin>"
+			"$<TARGET_FILE:ucobscontrolplugin>"
 			"${RELEASE_DIR}/obs-plugins/${ARCH_NAME}")
 
 		COMMAND if $<CONFIG:RelWithDebInfo>==1 ("${CMAKE_COMMAND}" -E copy
-			"$<TARGET_PDB_FILE: ucobscontrolplugin>"
+			"$<TARGET_PDB_FILE:ucobscontrolplugin>"
 			"${RELEASE_DIR}/obs-plugins/${ARCH_NAME}")
 
 		# Copy to obs-studio dev environment for immediate testing
 		COMMAND if $<CONFIG:Debug>==1 (
 			"${CMAKE_COMMAND}" -E copy
-				"$<TARGET_FILE: ucobscontrolplugin>"
+				"$<TARGET_FILE:ucobscontrolplugin>"
 				"${LIBOBS_INCLUDE_DIR}/../${OBS_BUILDDIR_ARCH}/rundir/$<CONFIG>/obs-plugins/${ARCH_NAME}")
 
 		COMMAND if $<CONFIG:Debug>==1 (
 			"${CMAKE_COMMAND}" -E copy
-				"$<TARGET_PDB_FILE: ucobscontrolplugin>"
+				"$<TARGET_PDB_FILE:ucobscontrolplugin>"
 				"${LIBOBS_INCLUDE_DIR}/../${OBS_BUILDDIR_ARCH}/rundir/$<CONFIG>/obs-plugins/${ARCH_NAME}")
-
-		COMMAND if $<CONFIG:Debug>==1 (
-			"${CMAKE_COMMAND}" -E make_directory
-				"${LIBOBS_INCLUDE_DIR}/../${OBS_BUILDDIR_ARCH}/rundir/$<CONFIG>/data/obs-plugins/ucobscontrolplugin")
-
-		COMMAND if $<CONFIG:Debug>==1 (
-			"${CMAKE_COMMAND}" -E copy_directory
-				"${PROJECT_SOURCE_DIR}/data"
-				"${LIBOBS_INCLUDE_DIR}/../${OBS_BUILDDIR_ARCH}/rundir/$<CONFIG>/data/obs-plugins/ucobscontrolplugin")
 	)
 	# --- End of sub-section ---
 
