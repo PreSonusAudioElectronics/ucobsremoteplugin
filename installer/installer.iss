@@ -4,7 +4,7 @@
 #define MyAppName "ucobscontrolplugin"
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "Presonus Audio Electronics"
-#define MyAppURL "https://github.com/presonus"
+#define MyAppURL "https://github.com/PreSonusAudioElectronics/ucobsremoteplugin"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
