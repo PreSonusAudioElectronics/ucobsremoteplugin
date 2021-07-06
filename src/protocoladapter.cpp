@@ -868,6 +868,14 @@ void ProtocolAdapter::setCurrentTransition (const QVariant& value)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
+void ProtocolAdapter::setTransitionsList (const QVariant& value)
+{
+	LOG	("setTransitionsList")
+	setCurrentTransition (value);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
 void ProtocolAdapter::setTransitionDuration (const QVariant& value)
 {
 	bool ok = false;

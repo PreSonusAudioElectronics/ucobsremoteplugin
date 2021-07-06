@@ -88,6 +88,7 @@ public slots:
 	void setPreviewScene (const QVariant& value);
 	void setSourceLocks (const QVariant& value);
 	void setSourceVisibles (const QVariant& value);
+	void setTransitionsList (const QVariant& value);
 	void setTriggerTransition (const QVariant& value);
 	void setCurrentTransition (const QVariant& value);
 	void setTransitionDuration (const QVariant& value);	
