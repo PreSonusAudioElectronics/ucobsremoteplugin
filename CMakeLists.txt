@@ -1,175 +1,95 @@
-cmake_minimum_required(VERSION 3.5)
-project(ucobscontrolplugin VERSION 1.0.0)
+cmake_minimum_required(VERSION 3.16...3.21)
 
-set(CMAKE_PREFIX_PATH "${QTDIR}")
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
+project(ucobscontrolplugin VERSION 1.1.0)
+add_library(${CMAKE_PROJECT_NAME} MODULE)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# Replace `Your Name Here` with the name (yours or your organization's) you want to see as the
+# author of the plugin (in the plugin's metadata itself and in the installers)
+set(PLUGIN_AUTHOR "James Inkster")
 
-add_definitions(-DASIO_STANDALONE)
+set(MACOS_BUNDLEID "com.presonus.${CMAKE_PROJECT_NAME}")
 
-if (WIN32 OR APPLE)
-	include(external/FindLibObs.cmake)
-endif()
+set(LINUX_MAINTAINER_EMAIL "jinkster@fender.com")
 
-find_package(LibObs REQUIRED)
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets Network)
+# Add your custom source files here - header files are optional and only required for visibility
+# e.g. in Xcode or Visual Studio
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/common.cpp
+			src/enumerators.cpp
+			src/frontend.cpp
+			src/networkconnection.cpp
+			src/networkserver.cpp
+			src/obsobjects.cpp
+			src/protocoladapter.cpp
+			src/statistics.cpp
+			src/ucobscontrolplugin.cpp
+			src/common.h
+			src/enumerators.h
+			src/frontend.h
+			src/networkconnection.h
+			src/networkserver.h
+			src/obsobjects.h
+			src/obsremoteprotocol.h
+			src/protocoladapter.h
+			src/statistics.h
+			src/ucobscontrolplugin.h)
 
-set(ucobscontrolplugin_SOURCES
-	src/common.cpp
-	src/enumerators.cpp
-	src/frontend.cpp
-	src/networkconnection.cpp
-	src/networkserver.cpp
-	src/obsobjects.cpp
-	src/protocoladapter.cpp
-	src/statistics.cpp
-	src/ucobscontrolplugin.cpp)
+# Import libobs as main plugin dependency
+find_package(libobs REQUIRED)
+include(cmake/ObsPluginHelpers.cmake)
 
-set(ucobscontrolplugin_HEADERS
-	src/common.h
-	src/enumerators.h
-	src/frontend.h
-	src/networkconnection.h
-	src/networkserver.h
-	src/obsobjects.h
-	src/obsremoteprotocol.h
-	src/protocoladapter.h
-	src/statistics.h
-	src/ucobscontrolplugin.h)
+# Uncomment these lines if you want to use the OBS Frontend API in your plugin
+find_package(obs-frontend-api REQUIRED)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::obs-frontend-api)
+
+# Uncomment those lines if you want to use Qt in your plugin
+find_qt(COMPONENTS Widgets Core Network)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE Qt::Core Qt::Widgets Qt::Network)
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES AUTOMOC ON AUTOUIC ON AUTORCC ON)
+
+configure_file(src/plugin-macros.h.in ${CMAKE_SOURCE_DIR}/src/plugin-macros.generated.h)
+
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/plugin-macros.generated.h)
+
+# /!\ TAKE NOTE: No need to edit things past this point /!\
 
 # --- Platform-independent build settings ---
-add_library(ucobscontrolplugin MODULE
-	${ucobscontrolplugin_SOURCES}
-	${ucobscontrolplugin_HEADERS})
 
-include_directories(
-	"${LIBOBS_INCLUDE_DIR}/../UI/obs-frontend-api"
-	${Qt5Core_INCLUDES}
-	${Qt5Widgets_INCLUDES}
-	${Qt5Network_INCLUDES})
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
-target_link_libraries(ucobscontrolplugin
-	libobs
-	Qt5::Core
-	Qt5::Widgets
-	Qt5::Network)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE OBS::libobs)
 
 # --- End of section ---
 
 # --- Windows-specific build settings and tasks ---
-if(WIN32)
-	if(NOT DEFINED OBS_FRONTEND_LIB)
-		set(OBS_FRONTEND_LIB "OBS_FRONTEND_LIB-NOTFOUND" CACHE FILEPATH "OBS frontend library")
-		message(FATAL_ERROR "Could not find OBS Frontend API's library !")
-	endif()
+if(OS_WINDOWS)
+  configure_file(cmake/bundle/windows/installer-Windows.iss.in
+                 ${CMAKE_BINARY_DIR}/installer-Windows.generated.iss)
 
-    if(MSVC)
-        # Enable Multicore Builds and disable FH4 (to not depend on VCRUNTIME140_1.DLL)
-	    add_definitions(/MP /d2FH4-)
-    endif()
+  if(MSVC)
+    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE /W4)
+  endif()
+  # --- End of section ---
 
-	if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-		set(ARCH_NAME "64bit")
-		set(OBS_BUILDDIR_ARCH "build64")
-	else()
-		set(ARCH_NAME "32bit")
-		set(OBS_BUILDDIR_ARCH "build32")
-	endif()
+  # -- macOS specific build settings and tasks --
+elseif(OS_MACOS)
+  configure_file(cmake/bundle/macos/installer-macos.pkgproj.in
+                 ${CMAKE_BINARY_DIR}/installer-macos.generated.pkgproj)
 
-	include_directories(
-		"${LIBOBS_INCLUDE_DIR}/../${OBS_BUILDDIR_ARCH}/UI"
-	)
+  set(MACOSX_PLUGIN_GUI_IDENTIFIER "${MACOS_BUNDLEID}")
+  set(MACOSX_PLUGIN_BUNDLE_VERSION "${CMAKE_PROJECT_VERSION}")
+  set(MACOSX_PLUGIN_SHORT_VERSION_STRING "1")
 
-	target_link_libraries(ucobscontrolplugin
-		"${OBS_FRONTEND_LIB}")
+  target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -Wall)
+  # --- End of section ---
 
-	# --- Release package helper ---
-	# The "release" folder has a structure similar OBS' one on Windows
-	set(RELEASE_DIR "${PROJECT_SOURCE_DIR}/release")
-
-	add_custom_command(TARGET ucobscontrolplugin POST_BUILD
-		# If config is Release, package release files
-		COMMAND if $<CONFIG:Release>==1 (
-			"${CMAKE_COMMAND}" -E make_directory
-			"${RELEASE_DIR}/obs-plugins/${ARCH_NAME}")
-
-		COMMAND if $<CONFIG:Release>==1 ("${CMAKE_COMMAND}" -E copy
-			"$<TARGET_FILE:ucobscontrolplugin>"
-			"${RELEASE_DIR}/obs-plugins/${ARCH_NAME}")
-
-		# In Release mode, copy Qt image format plugins
-		COMMAND if $<CONFIG:Release>==1 (
-			"${CMAKE_COMMAND}" -E copy
-			"${QTDIR}/plugins/imageformats/qjpeg.dll"
-			"${RELEASE_DIR}/bin/${ARCH_NAME}/imageformats/qjpeg.dll")
-		COMMAND if $<CONFIG:RelWithDebInfo>==1 (
-			"${CMAKE_COMMAND}" -E copy
-			"${QTDIR}/plugins/imageformats/qjpeg.dll"
-			"${RELEASE_DIR}/bin/${ARCH_NAME}/imageformats/qjpeg.dll")
-
-		# If config is RelWithDebInfo, package release files
-		COMMAND if $<CONFIG:RelWithDebInfo>==1 (
-			"${CMAKE_COMMAND}" -E make_directory
-			"${RELEASE_DIR}/data/obs-plugins/ucobscontrolplugin"
-			"${RELEASE_DIR}/obs-plugins/${ARCH_NAME}")
-
-		COMMAND if $<CONFIG:RelWithDebInfo>==1 ("${CMAKE_COMMAND}" -E copy_directory
-			"${PROJECT_SOURCE_DIR}/data"
-			"${RELEASE_DIR}/data/obs-plugins/ucobscontrolplugin")
-
-		COMMAND if $<CONFIG:RelWithDebInfo>==1 ("${CMAKE_COMMAND}" -E copy
-			"$<TARGET_FILE:ucobscontrolplugin>"
-			"${RELEASE_DIR}/obs-plugins/${ARCH_NAME}")
-
-		COMMAND if $<CONFIG:RelWithDebInfo>==1 ("${CMAKE_COMMAND}" -E copy
-			"$<TARGET_PDB_FILE:ucobscontrolplugin>"
-			"${RELEASE_DIR}/obs-plugins/${ARCH_NAME}")
-
-		# Copy to obs-studio dev environment for immediate testing
-		COMMAND if $<CONFIG:Debug>==1 (
-			"${CMAKE_COMMAND}" -E copy
-				"$<TARGET_FILE:ucobscontrolplugin>"
-				"${LIBOBS_INCLUDE_DIR}/../${OBS_BUILDDIR_ARCH}/rundir/$<CONFIG>/obs-plugins/${ARCH_NAME}")
-
-		COMMAND if $<CONFIG:Debug>==1 (
-			"${CMAKE_COMMAND}" -E copy
-				"$<TARGET_PDB_FILE:ucobscontrolplugin>"
-				"${LIBOBS_INCLUDE_DIR}/../${OBS_BUILDDIR_ARCH}/rundir/$<CONFIG>/obs-plugins/${ARCH_NAME}")
-	)
-	# --- End of sub-section ---
-
+  # --- Linux-specific build settings and tasks ---
+else()
+  target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -Wall)
 endif()
 # --- End of section ---
 
-# --- Linux-specific build settings and tasks ---
-if(UNIX AND NOT APPLE)
-	include(GNUInstallDirs)
+setup_plugin_target(${CMAKE_PROJECT_NAME})
 
-	set_target_properties(ucobscontrolplugin PROPERTIES PREFIX "")
-	target_link_libraries(ucobscontrolplugin obs-frontend-api)
 
-	file(GLOB locale_files data/locale/*.ini)
 
-	if(${USE_UBUNTU_FIX})
-		install(TARGETS ucobscontrolplugin
-			LIBRARY DESTINATION "/usr/lib/ucobscontrolplugin")
-	endif()
-	install(TARGETS ucobscontrolplugin
-		LIBRARY DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/ucobscontrolplugin")
 
-endif()
-# --- End of section ---
-
-# -- OS X specific build settings and tasks --
-if(APPLE)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -fvisibility=default")
-
-	set(CMAKE_SKIP_RPATH TRUE)
-	set_target_properties(ucobscontrolplugin PROPERTIES PREFIX "")
-	target_link_libraries(ucobscontrolplugin "${OBS_FRONTEND_LIB}")
-endif()
-# -- End of section --

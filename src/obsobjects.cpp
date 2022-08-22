@@ -547,6 +547,9 @@ void AudioMeter::handleLevel (void* meter, const float magnitude[MAX_AUDIO_CHANN
 
 void AudioMeter::updateLevel (const float magnitude[MAX_AUDIO_CHANNELS], const float peak[MAX_AUDIO_CHANNELS], const float inputPeak[MAX_AUDIO_CHANNELS])
 {
+	Q_UNUSED (magnitude)
+	Q_UNUSED (peak)
+	Q_UNUSED (inputPeak)
 	for(int i = 0; i < MAX_AUDIO_CHANNELS; ++i)
 	{
 		LOG ("AudioMeter::updateLevel [%d] Volume: %.2f, %.2f, %.2f\n", i, magnitude[i], peak[i], inputPeak[i]);

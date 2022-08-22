@@ -104,7 +104,7 @@ namespace Enumerators
 	{
 		obs_frontend_source_list obsScenes = {};
 		obs_frontend_get_scenes (&obsScenes);
-		for(int i = 0; i < obsScenes.sources.num; i++) 
+		for(int i = 0; i < static_cast<int> (obsScenes.sources.num); i++) 
 		{
 			if(obs_source_t* source = obsScenes.sources.array[i])
 			{
@@ -248,7 +248,7 @@ namespace Enumerators
 	{
 		obs_frontend_source_list obsTransitions = {};
 		obs_frontend_get_transitions (&obsTransitions);
-		for(int i = 0; i < obsTransitions.sources.num; i++) 
+		for(int i = 0; i < static_cast<int> (obsTransitions.sources.num); i++) 
 		{
 			if(obs_source_t* source = obsTransitions.sources.array[i])
 			{

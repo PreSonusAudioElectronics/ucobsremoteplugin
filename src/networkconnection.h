@@ -44,8 +44,8 @@ signals:
 	
 protected:
 	void resetBuffers ();
-	int readPos;
 	QTcpSocket& socket;
+	int readPos;
 	qint64 expectingBytes;
 	qint64 bytesToRead;
 	QString buffer;

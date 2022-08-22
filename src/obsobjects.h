@@ -208,7 +208,7 @@ class Output
 {
 public:
 	Output (obs_output_t& output);
-	~Output ();
+	virtual ~Output ();
 	
 	obs_output_t* getInternal () const;
 	void updateInternal (obs_output_t& output);

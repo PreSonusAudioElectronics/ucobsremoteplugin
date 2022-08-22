@@ -80,7 +80,6 @@ QString Statistics::getFreeDisk () const
 						config_get_string (currentProfile, "AdvOut", "RecFilePath");
 	
 	static const long double kKilo = 1024ULL;
-	static const long double kMByte = (kKilo * kKilo);
 	static const long double kGByte = (kKilo * kKilo * kKilo);
 	static const long double kTByte = (kKilo * kKilo * kKilo * kKilo);
 

@@ -88,7 +88,7 @@ UCOBSControlPlugin::UCOBSControlPlugin ()
 		port = OBSRemoteProtocol::kPortDefault;
 		values[OBSRemoteProtocol::kPortId] = port;
 		jsonDoc.setObject (values);
-		qint64 bytesWritten = configFile.write (jsonDoc.toJson ());
+		/*qint64 bytesWritten = */configFile.write (jsonDoc.toJson ());
 		configFile.close ();
 	}
 	server.start (port);
@@ -118,7 +118,8 @@ bool obs_module_load (void)
 		case OBS_FRONTEND_EVENT_FINISHED_LOADING :
 			{
 				//LOG ("OBS_FRONTEND_EVENT_FINISHED_LOADING, creating plugin");				   
-				UCOBSControlPlugin& plugin = UCOBSControlPlugin::instance ();
+				UCOBSControlPlugin& plugin = UCOBSControlPlugin::instance (); // instantiate plugin
+				Q_UNUSED (plugin)
 			} break;
 		case OBS_FRONTEND_EVENT_EXIT :
 			{
