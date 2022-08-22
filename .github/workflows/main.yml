@@ -15,7 +15,7 @@ on:
       - master
 
 env:
-  PLUGIN_NAME: 'ucobscontrolplugin'
+  PLUGIN_NAME: 'obs-plugintemplate'
 
 jobs:
   clang_check:
