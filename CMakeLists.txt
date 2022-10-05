@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16...3.21)
 
-project(ucobscontrolplugin VERSION 1.1.0)
+project(ucobscontrolplugin VERSION 1.1.1)
 add_library(${CMAKE_PROJECT_NAME} MODULE)
 
 # Replace `Your Name Here` with the name (yours or your organization's) you want to see as the

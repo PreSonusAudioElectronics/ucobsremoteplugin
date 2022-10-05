@@ -29,7 +29,7 @@
 #include <obs.hpp>
 
 #define PLUGIN_NAME "ucobscontrolplugin"
-#define PLUGIN_VERSION "1.0.0"
+#define PLUGIN_VERSION "1.1.1"
 
 #if ENABLE_LOGGING
 #define LOG(msg, ...) blog(LOG_INFO, "[" PLUGIN_NAME "] " msg, ##__VA_ARGS__);

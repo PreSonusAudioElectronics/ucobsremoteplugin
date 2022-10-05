@@ -20,7 +20,7 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 #define PLUGINNAME_H
 
 #define PLUGIN_NAME "ucobscontrolplugin"
-#define PLUGIN_VERSION "1.1.0"
+#define PLUGIN_VERSION "1.1.1"
 
 #define blog(level, msg, ...) blog(level, "[" PLUGIN_NAME "] " msg, ##__VA_ARGS__)
 

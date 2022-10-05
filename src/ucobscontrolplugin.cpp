@@ -70,13 +70,12 @@ UCOBSControlPlugin::UCOBSControlPlugin ()
 	LOG ("Welcome to UCOBSControlPlugin version %s! You're using OBS %d (%s)", PLUGIN_VERSION, obsVersion, obsVersionString);
 	
 	QString configPath = QStandardPaths::writableLocation (QStandardPaths::GenericDataLocation);
-	configPath.append ("/presonus/OBS Remote/");
+	configPath.append ("/presonus/OBSRemoteAdapter/");
 	QDir dir;
 	if (!dir.exists (configPath))
 		dir.mkpath (configPath);
 	configPath.append ("config.json");
 	
-	LOG ("Reading config from: %s", STR (configPath))
 	QFile configFile (configPath);
 	configFile.open (QIODevice::ReadWrite | QIODevice::Text);
 	QJsonDocument jsonDoc = QJsonDocument::fromJson (configFile.readAll ());
@@ -91,6 +90,7 @@ UCOBSControlPlugin::UCOBSControlPlugin ()
 		/*qint64 bytesWritten = */configFile.write (jsonDoc.toJson ());
 		configFile.close ();
 	}
+	LOG ("UCOBSControlPlugin read port config from: %s and is starting on port %d", STR (configPath), port)
 	server.start (port);
 }
 
