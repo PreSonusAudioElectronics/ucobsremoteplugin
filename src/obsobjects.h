@@ -69,12 +69,12 @@ public:
 	static void onSceneItemLockChanged (void* param, calldata_t* data);
 	
 signals:
-	void destroyed (const Source& source); ///< the source is about to be destroyed
-	void removed (const Source& source); ///< the source has been removed
-	void activated (const Source& source, bool isActive); ///< the source has been activated/deactivated in the main view (visible on stream/recording)
-	void shown (const Source& source, bool isVisible); ///< the source is visible/hidden on any display and/or on the main view
-	void enabled (const Source& source, bool isEnabled); ///< the source has been disabled/enabled
-	void renamed (const Source& source); ///< the source has been renamed
+	void destroyed (Source* source); ///< the source is about to be destroyed
+	void removed (const Source* source); ///< the source has been removed
+	void activated (const Source* source, bool isActive); ///< the source has been activated/deactivated in the main view (visible on stream/recording)
+	void shown (const Source* source, bool isVisible); ///< the source is visible/hidden on any display and/or on the main view
+	void enabled (const Source* source, bool isEnabled); ///< the source has been disabled/enabled
+	void renamed (const Source* source); ///< the source has been renamed
 	
 protected:
 	OBSSource source; // ref-counted
@@ -131,12 +131,12 @@ public:
 	QString getTypeString () const override;
 	
 signals:
-	void sceneSourceAdded (const Scene& scene, const SceneSource& source); ///< Called when a scene source has been added to the scene
-	void sceneSourceRemoved (const Scene& scene, const SceneSource& source); ///< Called when a scene source has been removed from the scene
-	void sceneSourcesReordered (const Scene& scene); ///< Called when scene sources have been reoredered in the scene
-	void sceneSourcesRefreshed (const Scene& scene); ///< Called when the entire scene sources list needs to be refreshed. Usually this is only used when groups have changed
-	void sceneSourceVisibilityChanged (const Scene& scene, const SceneSource& source, bool visible); ///<  Called when a scene source's visibility state changes
-	void sceneSourceLockChanged (const Scene& scene, const SceneSource& source, bool locked); ///<  Called when a scene source has been locked or unlocked
+	void sceneSourceAdded (const Scene* scene, const SceneSource* source); ///< Called when a scene source has been added to the scene
+	void sceneSourceRemoved (const Scene* scene, const SceneSource* source); ///< Called when a scene source has been removed from the scene
+	void sceneSourcesReordered (const Scene* scene); ///< Called when scene sources have been reoredered in the scene
+	void sceneSourcesRefreshed (const Scene* scene); ///< Called when the entire scene sources list needs to be refreshed. Usually this is only used when groups have changed
+	void sceneSourceVisibilityChanged (const Scene* scene, const SceneSource* source, bool visible); ///<  Called when a scene source's visibility state changes
+	void sceneSourceLockChanged (const Scene* scene, const SceneSource* source, bool locked); ///<  Called when a scene source has been locked or unlocked
 	
 protected:
 	void regenerateSources ();

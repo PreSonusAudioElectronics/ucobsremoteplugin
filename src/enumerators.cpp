@@ -40,24 +40,26 @@ namespace Enumerators
 		if(!sourcesArray)
 			return false;
 		Source* source = nullptr;
-		
-		switch(obs_source_get_type (obsSource))
+		if(!obs_source_removed (obsSource)) // ensure the source hasn't already been removed
 		{
-		default:
-			// skip it, unsupported type
-			break;
-		case OBS_SOURCE_TYPE_SCENE:
-			source = new Scene (*obsSource);
-			break;
-		case OBS_SOURCE_TYPE_INPUT:
-			source = new Input (*obsSource);
-			break;
-		case OBS_SOURCE_TYPE_FILTER:
-			source = new Filter (*obsSource);
-			break;
-		case OBS_SOURCE_TYPE_TRANSITION:
-			source = new Transition (*obsSource);
-			break;
+			switch(obs_source_get_type (obsSource))
+			{
+			default:
+				// skip it, unsupported type
+				break;
+			case OBS_SOURCE_TYPE_SCENE:
+				source = new Scene (*obsSource);
+				break;
+			case OBS_SOURCE_TYPE_INPUT:
+				source = new Input (*obsSource);
+				break;
+			case OBS_SOURCE_TYPE_FILTER:
+				source = new Filter (*obsSource);
+				break;
+			case OBS_SOURCE_TYPE_TRANSITION:
+				source = new Transition (*obsSource);
+				break;
+			}
 		}
 		
 		if(source)

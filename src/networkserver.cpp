@@ -140,17 +140,17 @@ void NetworkServer::incomingConnection (qintptr socketDescriptor)
 	connect (connection, &NetworkConnection::receivedJson, this, &NetworkServer::receivedJson);
 	
 	connections.append (connection);
-	emit connectionAdded (*connection);
+	emit connectionAdded (connection);
 	
-	//LOG ("NetworkServer added new connection");
+	LOG ("Added new connection");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-void NetworkServer::connectionTerminated (NetworkConnection& connection)
+void NetworkServer::connectionTerminated (NetworkConnection* connection)
 {
-	//LOG ("NetworkServer::connectionTerminated");
+	LOG ("Connection removed");
 	
-	deadConnections.append (&connection);
+	deadConnections.append (connection);
 	emit connectionRemoved (connection);
 }

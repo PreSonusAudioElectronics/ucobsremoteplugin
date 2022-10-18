@@ -86,6 +86,8 @@ ProtocolAdapter::~ProtocolAdapter ()
 
 void ProtocolAdapter::connectScene (Scene& scene)
 {
+	LOG ("********\nProtocolAdapter::connectScene %s\t%p\n********", STR (scene.getName ()), (void*)&scene)
+	
 	connect (&scene, &Source::destroyed, this, &ProtocolAdapter::sceneDestroyed);
 	connect (&scene, &Source::removed, this, &ProtocolAdapter::sceneRemoved);
 	connect (&scene, &Source::activated, this, &ProtocolAdapter::sceneActivated);
@@ -105,6 +107,8 @@ void ProtocolAdapter::connectScene (Scene& scene)
 
 void ProtocolAdapter::disconnectScene (Scene& scene)
 {
+	LOG ("********\nProtocolAdapter::disconnectScene\t%p\n********",  (void*)&scene)
+	
 	disconnect (&scene, &Source::destroyed, this, &ProtocolAdapter::sceneDestroyed);
 	disconnect (&scene, &Source::removed, this, &ProtocolAdapter::sceneRemoved);
 	disconnect (&scene, &Source::activated, this, &ProtocolAdapter::sceneActivated);
@@ -196,7 +200,7 @@ void ProtocolAdapter::getAll (QJsonArray& valuesArray)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProtocolAdapter::receivedJson (const QJsonObject& json, NetworkConnection& connection)
+void ProtocolAdapter::receivedJson (const QJsonObject& json, NetworkConnection* connection)
 {
 	QJsonArray getResults;
 	const QJsonArray valuesArray = json[kValuesArray].toArray ();
@@ -227,102 +231,112 @@ void ProtocolAdapter::receivedJson (const QJsonObject& json, NetworkConnection& 
 	
 	//LOG ("getResults count = %d", getResults.count ())
 	if(!getResults.isEmpty ())
-		sendValues (getResults, &connection);
+		sendValues (getResults, connection);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProtocolAdapter::connectionAdded (NetworkConnection& connection)
+void ProtocolAdapter::connectionAdded (NetworkConnection* connection)
 {
+	if(!connection)
+		return;
 	LOG ("ProtocolAdapter::connectionAdded")
 	QJsonArray valuesArray;
 	getAll (valuesArray);
-	sendValues (valuesArray, &connection);
+	sendValues (valuesArray, connection);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProtocolAdapter::connectionRemoved (NetworkConnection& connection)
+void ProtocolAdapter::connectionRemoved (NetworkConnection* connection)
 {
 	Q_UNUSED (connection)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProtocolAdapter::sceneDestroyed (const Source& source)
+void ProtocolAdapter::sceneDestroyed (Source* source)
 {
-	Q_UNUSED (source)
-	//LOG ("Scene Destroyed: %s", STR (source.getName ()))
+	if(!source)
+		return;
+	
+	LOG ("Scene Destroyed")
+	
+	Scene* scene = reinterpret_cast<Scene*> (source);
+	disconnectScene (*scene);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProtocolAdapter::sceneRemoved (const Source& source)
+void ProtocolAdapter::sceneRemoved (const Source* source)
 {
-	Q_UNUSED (source)
-	LOG ("Scene Removed: %s", STR (source.getName ()))
+	if(!source)
+		return;
+	
+	LOG ("Scene Removed: %s", STR (source->getName ()))
 	send (get (OBSRemoteProtocol::kItemSceneList));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProtocolAdapter::sceneActivated (const Source& source, bool isActive)
+void ProtocolAdapter::sceneActivated (const Source* source, bool isActive)
 {
+	LOG ("ProtocolAdapter::sceneActivated () source = %p, isActive = %d", (void *)source, isActive)
+	
 	Q_UNUSED (source)
 	Q_UNUSED (isActive)
-	LOG ("Scene Activated: %s (%d)", STR (source.getName ()), isActive)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProtocolAdapter::sceneShown (const Source& source, bool isVisible)
+void ProtocolAdapter::sceneShown (const Source* source, bool isVisible)
 {
 	Q_UNUSED (source)
 	Q_UNUSED (isVisible)
-	LOG ("Scene Shown: %s (%d)", STR (source.getName ()), isVisible)
+	//LOG ("Scene Shown: %s (%d)", STR (source->getName ()), isVisible)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProtocolAdapter::sceneEnabled (const Source& source, bool isEnabled)
+void ProtocolAdapter::sceneEnabled (const Source* source, bool isEnabled)
 {
 	Q_UNUSED (source)
 	Q_UNUSED (isEnabled)
-	LOG ("Scene Enabled: %s (%d)", STR (source.getName ()), isEnabled)
+	//LOG ("Scene Enabled: %s (%d)", STR (source->getName ()), isEnabled)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProtocolAdapter::sceneRenamed (const Source& source)
+void ProtocolAdapter::sceneRenamed (const Source* source)
 {
 	Q_UNUSED (source)
-	LOG ("Scene Renamed: %s", STR (source.getName ()))
+	LOG ("Scene Renamed: %s", STR (source->getName ()))
 	send (get (OBSRemoteProtocol::kItemSceneList));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProtocolAdapter::sceneSourceAdded (const Scene& scene, const SceneSource& source)
-{
-	Q_UNUSED (scene)
-	Q_UNUSED (source)
-	LOG ("Scene Source Added: %s", STR (source.getName ()))
-	send (get (OBSRemoteProtocol::kItemSceneList));
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-void ProtocolAdapter::sceneSourceRemoved (const Scene& scene, const SceneSource& source)
+void ProtocolAdapter::sceneSourceAdded (const Scene* scene, const SceneSource* source)
 {
 	Q_UNUSED (scene)
 	Q_UNUSED (source)
-	LOG ("Scene Source Removed: %s", STR (source.getName ()))
+	LOG ("Scene Source Added: %s", STR (source->getName ()))
 	send (get (OBSRemoteProtocol::kItemSceneList));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProtocolAdapter::sceneSourcesReordered (const Scene& scene)
+void ProtocolAdapter::sceneSourceRemoved (const Scene* scene, const SceneSource* source)
+{
+	Q_UNUSED (scene)
+	Q_UNUSED (source)
+	LOG ("Scene Source Removed: %s", STR (source->getName ()))
+	send (get (OBSRemoteProtocol::kItemSceneList));
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+void ProtocolAdapter::sceneSourcesReordered (const Scene* scene)
 {
 	Q_UNUSED (scene)
 	LOG ("Scene Source Reordered")
@@ -331,7 +345,7 @@ void ProtocolAdapter::sceneSourcesReordered (const Scene& scene)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProtocolAdapter::sceneSourcesRefreshed (const Scene& scene)
+void ProtocolAdapter::sceneSourcesRefreshed (const Scene* scene)
 {
 	Q_UNUSED (scene)
 	LOG ("Scene Source Refreshed")
@@ -340,24 +354,24 @@ void ProtocolAdapter::sceneSourcesRefreshed (const Scene& scene)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProtocolAdapter::sceneSourceVisibilityChanged (const Scene& scene, const SceneSource& source, bool visible)
+void ProtocolAdapter::sceneSourceVisibilityChanged (const Scene* scene, const SceneSource* source, bool visible)
 {
 	Q_UNUSED (scene)
 	Q_UNUSED (source)
 	Q_UNUSED (visible)
-	LOG ("Scene Source Visibilty Changed: %s", STR (source.getName ()))
+	LOG ("Scene Source Visibilty Changed: %s", STR (source->getName ()))
 	send (get (OBSRemoteProtocol::kItemSceneList));
 	send (get (OBSRemoteProtocol::kItemSceneSourcesVisibles));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-void ProtocolAdapter::sceneSourceLockChanged (const Scene& scene, const SceneSource& source, bool locked)
+void ProtocolAdapter::sceneSourceLockChanged (const Scene* scene, const SceneSource* source, bool locked)
 {
 	Q_UNUSED (scene)
 	Q_UNUSED (source)
 	Q_UNUSED (locked)
-	LOG ("Scene Source Lock changed: %s", STR (source.getName ()))
+	LOG ("Scene Source Lock changed: %s", STR (source->getName ()))
 	send (get (OBSRemoteProtocol::kItemSceneList));
 	send (get (OBSRemoteProtocol::kItemSceneSourcesLocks));
 }
@@ -409,6 +423,7 @@ void ProtocolAdapter::sceneListChanged ()
 
 void ProtocolAdapter::sceneChanged ()
 {
+	LOG ("ProtocolAdapter::sceneChanged")
 	if(Scene* scene = frontend.getCurrentScene ())
 		connectScene (*scene);
 	send (get (OBSRemoteProtocol::kItemSceneList));
@@ -419,6 +434,7 @@ void ProtocolAdapter::sceneChanged ()
 
 void ProtocolAdapter::previewSceneChanged ()
 {
+	LOG ("ProtocolAdapter::previewSceneChanged")
 	if(Scene* scene = frontend.getPreviewScene ())
 		connectScene (*scene);
 	send (get (OBSRemoteProtocol::kItemSceneList));

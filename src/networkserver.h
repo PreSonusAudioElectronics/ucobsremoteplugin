@@ -50,16 +50,16 @@ public:
 	
 signals:
 	void stopClients ();
-	void receivedJson (const QJsonObject& json, NetworkConnection& connection);
-	void connectionAdded (NetworkConnection& connection);
-	void connectionRemoved (NetworkConnection& connection);
+	void receivedJson (const QJsonObject& json, NetworkConnection* connection);
+	void connectionAdded (NetworkConnection* connection);
+	void connectionRemoved (NetworkConnection* connection);
 	
 protected:
 	// QTcpServer
 	void incomingConnection (qintptr socketDescriptor) override;
 	
 public slots:
-	void connectionTerminated (NetworkConnection& connection);
+	void connectionTerminated (NetworkConnection* connection);
 	void idle ();
 	
 private:

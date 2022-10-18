@@ -137,7 +137,7 @@ void FrontEnd::handleEvent (enum obs_frontend_event event)
 		break;
 			
 	case OBS_FRONTEND_EVENT_SCENE_CHANGED :
-		//LOG ("FrontEnd: OBS_FRONTEND_EVENT_SCENE_CHANGED")
+		LOG ("FrontEnd: OBS_FRONTEND_EVENT_SCENE_CHANGED")
 		rebuildCurrentScene ();
 		emit sceneChanged ();
 		break;

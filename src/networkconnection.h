@@ -85,8 +85,8 @@ public:
 	bool idle ();
 	
 signals:
-	void receivedJson (const QJsonObject& json, NetworkConnection& connection);
-	void disconnectedFromClient (NetworkConnection& connection);
+	void receivedJson (const QJsonObject& json, NetworkConnection* connection);
+	void disconnectedFromClient (NetworkConnection* connection);
 	
 public slots:
 	void readData ();

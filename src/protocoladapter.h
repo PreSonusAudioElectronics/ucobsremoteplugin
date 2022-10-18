@@ -94,9 +94,9 @@ public slots:
 	void setTransitionDuration (const QVariant& value);	
 	
 	// NetworkConnection:
-	void receivedJson (const QJsonObject& json, NetworkConnection& connection);
-	void connectionAdded (NetworkConnection& connection);
-	void connectionRemoved (NetworkConnection& connection);
+	void receivedJson (const QJsonObject& json, NetworkConnection* connection);
+	void connectionAdded (NetworkConnection* connection);
+	void connectionRemoved (NetworkConnection* connection);
 	
 	// OBS Object Handling:
 	void streamingStateChanged (bool isStreaming);
@@ -109,18 +109,18 @@ public slots:
 	void sceneChanged ();
 	void previewSceneChanged ();
 	void sceneListChanged ();
-	void sceneDestroyed (const Source& source);
-	void sceneRemoved (const Source& source);
-	void sceneActivated (const Source& source, bool isActive);
-	void sceneShown (const Source& source, bool isVisible);
-	void sceneEnabled (const Source& source, bool isEnabled);
-	void sceneRenamed (const Source& source);
-	void sceneSourceAdded (const Scene& scene, const SceneSource& source);
-	void sceneSourceRemoved (const Scene& scene, const SceneSource& source);
-	void sceneSourcesReordered (const Scene& scene);
-	void sceneSourcesRefreshed (const Scene& scene);
-	void sceneSourceVisibilityChanged (const Scene& scene, const SceneSource& source, bool visible);
-	void sceneSourceLockChanged (const Scene& scene, const SceneSource& source, bool locked);
+	void sceneDestroyed (Source* source);
+	void sceneRemoved (const Source* source);
+	void sceneActivated (const Source* source, bool isActive);
+	void sceneShown (const Source* source, bool isVisible);
+	void sceneEnabled (const Source* source, bool isEnabled);
+	void sceneRenamed (const Source* source);
+	void sceneSourceAdded (const Scene* scene, const SceneSource* source);
+	void sceneSourceRemoved (const Scene* scene, const SceneSource* source);
+	void sceneSourcesReordered (const Scene* scene);
+	void sceneSourcesRefreshed (const Scene* scene);
+	void sceneSourceVisibilityChanged (const Scene* scene, const SceneSource* source, bool visible);
+	void sceneSourceLockChanged (const Scene* scene, const SceneSource* source, bool locked);
 	
 protected:
 	enum RequestType

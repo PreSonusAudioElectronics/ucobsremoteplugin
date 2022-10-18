@@ -69,7 +69,6 @@ Source::Source (obs_source_t& _source)
 
 Source::~Source ()
 {	
-	//LOG ("SOURCE - %s", STR (getName ()))
 	if(signal_handler_t* handler = obs_source_get_signal_handler (source))
 	{
 		signal_handler_disconnect (handler, "destroy", onDestroyed, this);
@@ -91,6 +90,7 @@ Source::~Source ()
 			signal_handler_disconnect (handler, "item_locked", onSceneItemLockChanged, this);
 		}
 	}
+	//LOG ("SOURCE Destructor - %s (%p)", STR (getName ()), (void*)this)
 }
 	
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,7 +103,7 @@ void Source::onDestroyed (void* param, calldata_t* data)
 	if(source->getInternal () != obsSource)
 		return;
 	
-	source->emit destroyed (*source);
+	source->emit destroyed (source);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,33 +116,35 @@ void Source::onRemoved (void* param, calldata_t* data)
 	if(source->getInternal () != obsSource)
 		return;
 	
-	source->emit removed (*source);
+	source->emit removed (source);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Source::onActivated (void* param, calldata_t* data)
 {
-	//LOG ("Source::onActivated")
 	Source* source = reinterpret_cast<Source*> (param);
 	obs_source_t* obsSource = (obs_source_t*)calldata_ptr (data, "source");
 	if(source->getInternal () != obsSource)
 		return;
-	
-	source->emit activated (*source, true);
+	if(obsSource == nullptr)
+		return;
+	//LOG ("Source::onActivated, source: %p\ttype: %s\tname: %s", (void *)source, obs_source_get_id (obsSource), STR (source->getName ()))
+	source->emit activated (source, true);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Source::onDeactivated (void* param, calldata_t* data)
 {
-	//LOG ("Source::onDeactivated")
 	Source* source = reinterpret_cast<Source*> (param);
 	obs_source_t* obsSource = (obs_source_t*)calldata_ptr (data, "source");
 	if(source->getInternal () != obsSource)
 		return;
-	
-	source->emit activated (*source, false);
+	if(obsSource == nullptr)
+		return;
+	//LOG ("Source::onDeactivated")
+	source->emit activated (source, false);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,7 +157,7 @@ void Source::onShown (void* param, calldata_t* data)
 	if(source->getInternal () != obsSource)
 		return;
 	
-	source->emit shown (*source, true);
+	source->emit shown (source, true);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,7 +170,7 @@ void Source::onHidden (void* param, calldata_t* data)
 	if(source->getInternal () != obsSource)
 		return;
 	
-	source->emit shown (*source, false);
+	source->emit shown (source, false);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -184,7 +186,7 @@ void Source::onEnabled (void* param, calldata_t* data)
 	bool enabled = false;
 	if(!calldata_get_bool (data, "enabled", &enabled))
 		return;
-	source->emit enabled (*source, enabled);
+	source->emit enabled (source, enabled);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -196,7 +198,7 @@ void Source::onRenamed (void* param, calldata_t* data)
 	obs_source_t* obsSource = (obs_source_t*)calldata_ptr (data, "source");
 	if(source->getInternal () != obsSource)
 		return;
-	source->emit renamed (*source);
+	source->emit renamed (source);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -223,7 +225,7 @@ void Source::onSceneItemRemoved (void* param, calldata_t* data)
 
 void Source::onSceneItemReordered (void* param, calldata_t* data)
 {
-	LOG ("Source::onSceneItemReordered")
+	//LOG ("Source::onSceneItemReordered")
 	Scene* scene = reinterpret_cast<Scene*> (param);
 	if(scene)
 		scene->handleSceneItemsReordered (data);
@@ -261,22 +263,10 @@ void Source::onSceneItemLockChanged (void* param, calldata_t* data)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-QString Scene::getTypeString () const
-{
-	return "Scene";
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-
-obs_scene_t* Scene::getInternalScene () const
-{
-	return obs_scene_from_source (getInternal ()); // does not increase reference
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-
 QString Source::getName () const
 {
+	if(source == nullptr)
+		return "NULL";
 	if(const char* sourceName = obs_source_get_name (source))
 		return QString (sourceName);
 	return "Error";
@@ -314,6 +304,7 @@ void Source::debug ()
 Scene::Scene (obs_source_t& _source)
 : Source (_source)
 {
+	//LOG ("Scene constructor %p", (void *)this)
 	regenerateSources ();
 }
 
@@ -322,6 +313,20 @@ Scene::Scene (obs_source_t& _source)
 Scene::~Scene ()
 {
 	Enumerators::destroy (sceneSources);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+QString Scene::getTypeString () const
+{
+	return "Scene";
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+obs_scene_t* Scene::getInternalScene () const
+{
+	return obs_scene_from_source (getInternal ()); // does not increase reference
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -358,7 +363,7 @@ void Scene::handleSceneItemAdded (calldata_t* data)
 	
 	regenerateSources ();
 	if(SceneSource* sceneSource = findSceneSource (*obsSceneItem))
-		emit sceneSourceAdded (*this, *sceneSource);
+		emit sceneSourceAdded (this, sceneSource);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -375,7 +380,7 @@ void Scene::handleSceneItemRemoved (calldata_t* data)
 	
 	if(SceneSource* sceneSource = findSceneSource (*obsSceneItem))
 	{	
-		emit sceneSourceRemoved (*this, *sceneSource);
+		emit sceneSourceRemoved (this, sceneSource);
 		regenerateSources ();
 	}
 }
@@ -388,8 +393,8 @@ void Scene::handleSceneItemsReordered (calldata_t* data)
 	if(getInternalScene () != obsScene)
 		return;
 	regenerateSources ();
-	LOG ("Scene::handleSceneItemsReordered")
-	emit sceneSourcesReordered (*this);
+	//LOG ("Scene::handleSceneItemsReordered")
+	emit sceneSourcesReordered (this);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -400,7 +405,7 @@ void Scene::handleSceneItemsRefreshed (calldata_t* data)
 	if(getInternalScene () != obsScene)
 		return;
 	
-	emit sceneSourcesRefreshed (*this);
+	emit sceneSourcesRefreshed (this);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -420,7 +425,7 @@ void Scene::handleSceneItemVisibilityChanged (calldata_t* data)
 		bool visible = false;
 		if(!calldata_get_bool (data, "visible", &visible))
 			return;
-		emit sceneSourceVisibilityChanged (*this, *sceneSource, visible);
+		emit sceneSourceVisibilityChanged (this, sceneSource, visible);
 	}
 }
 
@@ -441,7 +446,7 @@ void Scene::handleSceneItemLockChanged (calldata_t* data)
 		bool locked = false;
 		if(!calldata_get_bool (data, "locked", &locked))
 			return;
-		emit sceneSourceLockChanged (*this, *sceneSource, locked);
+		emit sceneSourceLockChanged (this, sceneSource, locked);
 	}
 }
 
@@ -552,7 +557,7 @@ void AudioMeter::updateLevel (const float magnitude[MAX_AUDIO_CHANNELS], const f
 	Q_UNUSED (inputPeak)
 	for(int i = 0; i < MAX_AUDIO_CHANNELS; ++i)
 	{
-		LOG ("AudioMeter::updateLevel [%d] Volume: %.2f, %.2f, %.2f\n", i, magnitude[i], peak[i], inputPeak[i]);
+		//LOG ("AudioMeter::updateLevel [%d] Volume: %.2f, %.2f, %.2f\n", i, magnitude[i], peak[i], inputPeak[i]);
 	}
 }
 
@@ -640,7 +645,7 @@ void Output::updateInternal (obs_output_t& _output)
 
 void Output::debug ()
 {
-	LOG ("Output:'%s'\t%s\t%dx%d\tactive? %d\n", STR (getName ()), STR (getId ()), getWidth (), getHeight (), isActive ())
+	//LOG ("Output:'%s'\t%s\t%dx%d\tactive? %d\n", STR (getName ()), STR (getId ()), getWidth (), getHeight (), isActive ())
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

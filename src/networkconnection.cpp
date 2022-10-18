@@ -212,7 +212,7 @@ bool NetworkConnection::setDescriptor (qintptr descriptor)
 void NetworkConnection::parsedData (const QJsonObject& json)
 {
 	aliveTimer.start ();
-	emit receivedJson (json, *this);
+	emit receivedJson (json, this);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -263,6 +263,6 @@ void NetworkConnection::disconnectCompleted ()
 {
 	//LOG ("NetworkConnection::disconnectCompleted. Error? %s", STR (socket.errorString ()))
 	aliveTimer.invalidate ();
-	emit disconnectedFromClient (*this);
+	emit disconnectedFromClient (this);
 }
 
