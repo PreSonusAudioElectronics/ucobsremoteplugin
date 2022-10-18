@@ -32,10 +32,17 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/common.cpp
 			src/protocoladapter.h
 			src/statistics.h
 			src/ucobscontrolplugin.h)
+			
+include(cmake/ObsPluginHelpers.cmake)
+
+if(OS_WINDOWS)
+configure_file(${CMAKE_SOURCE_DIR}/cmake/bundle/windows/ucobscontrolplugin.rc.in
+                 src/ucobscontrolplugin.rc)
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE src/ucobscontrolplugin.rc)
+endif()
 
 # Import libobs as main plugin dependency
 find_package(libobs REQUIRED)
-include(cmake/ObsPluginHelpers.cmake)
 
 # Uncomment these lines if you want to use the OBS Frontend API in your plugin
 find_package(obs-frontend-api REQUIRED)
